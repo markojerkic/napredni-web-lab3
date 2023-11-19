@@ -13,12 +13,13 @@ var myGameArea = {
     canvas: document.createElement("canvas"),
     start: function() {
         this.canvas.id = "myGameCanvas";
-        this.canvas.width = 700;
-        this.canvas.height = 700;
+        this.canvas.width = window.innerWidth - 10;
+        this.canvas.height = window.innerHeight - 10;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.frameNo = 0;
         this.interval = setInterval(updateGameArea, 20);
+        this.canvas.focus();
     },
     stop: function() {
         clearInterval(this.interval);
@@ -30,7 +31,6 @@ var myGameArea = {
 }
 
 function hanldeKeypress(e) {
-    console.log("Tipka ošla", e);
     switch (e.code) {
         case "ArrowDown":
             player.speed_x = 0;
@@ -58,9 +58,9 @@ function startGame() {
     player = new Player(myGameArea);
     eventListener = window.addEventListener("keydown", hanldeKeypress)
 
-    gamePieces.push(new Asteroid(myGameArea));
-    gamePieces.push(new Asteroid(myGameArea));
-    gamePieces.push(new Asteroid(myGameArea));
+    for (let i = 0; i < Math.floor(Math.random() * 10) + 5; i++) {
+        gamePieces.push(new Asteroid(myGameArea));
+    }
 
     myGameArea.start();
 }
@@ -132,9 +132,9 @@ class Asteroid extends Component {
         const xOrY = Math.floor(Math.random() * 2);
         if (xOrY === 0) {
             this.x = 0;
-            this.y = Math.random() * 700;
+            this.y = Math.random() * (window.innerWidth * 2);
         } else {
-            this.x = Math.random() * 700;
+            this.x = Math.random() * (window.innerHeight * 2);
             this.y = 0;
         }
     }
@@ -149,8 +149,8 @@ class Player extends Component {
         */
     constructor(myGameArea) {
         super(myGameArea);
-        this.x = 450;
-        this.y = 450;
+        this.x = window.innerWidth / 2;
+        this.y = window.innerHeight / 2;
         this.color = "red";
         this.height = 30;
         this.width = 30;
@@ -170,8 +170,54 @@ function updateGameArea() {
         gamePiece.newPos();
         gamePiece.update();
     }
+
     player.newPos();
     player.update();
+
+    let quit = gamePieces.some(piece => {
+        const playerLeftEdgeX = player.x - player.width / 2;
+        const playerLeftEdgeWithOffsetX = player.x + player.width / 2;
+        const playerTopEdgeY = player.y - player.height / 2;
+        const playerTopEdgeWithOffsetY = player.y + player.height / 2;
+
+        const pieceLeftEdgeX = piece.x - piece.width / 2;
+        const pieceLeftEdgeWithOffsetX = piece.x + piece.width / 2;
+        const pieceTopEdgeY = piece.y - piece.height / 2;
+        const pieceTopEdgeWithOffsetY = piece.y + piece.height / 2;
+
+
+        // Gorni lijevi kut je unutar jednog pieca
+        if ((playerLeftEdgeX >= pieceLeftEdgeX && playerLeftEdgeX <= pieceLeftEdgeWithOffsetX) &&
+            (playerTopEdgeY >= pieceTopEdgeY && playerTopEdgeY <= pieceTopEdgeWithOffsetY)) {
+            return true;
+        }
+
+        // Gorni desni kut je unutar jednog pieca
+        if ((playerLeftEdgeWithOffsetX >= pieceLeftEdgeX && playerLeftEdgeWithOffsetX <= pieceLeftEdgeWithOffsetX) &&
+            (playerTopEdgeY >= pieceTopEdgeY && playerTopEdgeY <= pieceTopEdgeWithOffsetY)) {
+            return true;
+        }
+
+        // Donji lijevi kut je unutar jednog pieca
+        if ((playerLeftEdgeX >= pieceLeftEdgeX && playerLeftEdgeX <= pieceLeftEdgeWithOffsetX) &&
+            (playerTopEdgeWithOffsetY >= pieceTopEdgeY && playerTopEdgeWithOffsetY <= pieceTopEdgeWithOffsetY)) {
+            return true;
+        }
+
+        // Donji desni kut je unutar jednog pieca
+        if ((playerLeftEdgeWithOffsetX >= pieceLeftEdgeX && playerLeftEdgeWithOffsetX <= pieceLeftEdgeWithOffsetX) &&
+            (playerTopEdgeWithOffsetY >= pieceTopEdgeY && playerTopEdgeWithOffsetY <= pieceTopEdgeWithOffsetY)) {
+            return true;
+        }
+
+        return false;
+    });
+
+
+    if (quit) {
+        myGameArea.stop();
+        alert("Gotov si");
+    }
 }
 
 startGame();
