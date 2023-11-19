@@ -1,12 +1,15 @@
 
+/**
+    * Središnji kontroler tijeka igre
+*/
 class Game {
     /**
         * @type Asteroid[]
-        */
+    */
     gamePieces = [];
     /**
         * @type Player
-        */
+    */
     player = null;
     eventListener = null;
 
@@ -23,20 +26,27 @@ class Game {
         this.restartButton = document.getElementById("restart");
         if (!this.restartButton) throw Error("No restart button");
         this.restartButton.style.display = "none";
+
+        // Dohvat najboljeg rezultata
+        this.topScore = localStorage.getItem("topScore");
     }
 
     start() {
-        this.frameNo = 0;
+        // Interval za ponovno crtanje po canvasu
         this.interval = setInterval(() => this.updateGameArea(), 20);
+        // Prebacimo fokus na canvas, da se odmah može koristiti tipkovnica i upravljati igrom
         this.canvas.focus();
 
+        // Event listener koji sluša kada je pritisnuta tipka
         this.eventListener = window.addEventListener("keydown", (e) => this.hanldeKeypress(e))
 
+        // Inicijalizacija igrača i slučajan broj asteroida (pet do petnaest)
         this.player = new Player(this);
         for (let i = 0; i < Math.floor(Math.random() * 10) + 5; i++) {
             this.gamePieces.push(new Asteroid(this));
         }
 
+        // Postavljamo tekst najboljeg i trenutnog vremena, i bilježimo vrijeme početka igre
         this.setHeaderText();
         this.startTime = new Date().getTime();
     }
@@ -53,24 +63,21 @@ class Game {
     }
 
     setHeaderText() {
-        let topScore = localStorage.getItem("topScore");
-
-        let resultString = ``;
+        // Postavljanje najbolje i trenutno vrijeme u gornji deni kut
         let ctx = this.canvas.getContext('2d');
         ctx.fillStyle = 'rgb(0,0,0)';
         ctx.font = "1.5rem Arial";
-        if (topScore) {
-            resultString =
-                ctx.textAlign = 'right';
-            ctx.fillText(`Najbolje vrijeme: ${this.formatTime(Number(topScore))}`, this.canvas.width, 30);
-        }
-        resultString =
+        if (this.topScore) {
             ctx.textAlign = 'right';
+            ctx.fillText(`Najbolje vrijeme: ${this.formatTime(Number(this.topScore))}`, this.canvas.width, 30);
+        }
+        ctx.textAlign = 'right';
         ctx.fillText(`Trenutno vrijeme: ${this.formatTime(new Date().getTime() - this.startTime)}`, this.canvas.width, 60);
 
     }
 
     stop() {
+        // Po zavšetku igre, očistimo interval, uklonimo event listener, i spremimo novo najbolje vrijeme ako je to potrenbno
         clearInterval(this.interval);
         removeEventListener("keydown", this.eventListener);
 
@@ -82,10 +89,12 @@ class Game {
     }
 
     clear() {
+        // Očistimo canvas
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     hanldeKeypress(e) {
+        // Provjera unosa s tipkovnice
         switch (e.code) {
             case "ArrowDown":
                 this.player.speed_x = 0;
@@ -119,6 +128,7 @@ class Game {
         this.player.newPos();
         this.player.update();
 
+        // Računamo jeli igrač se sudatio s asteroidom
         let quit = this.gamePieces.some(piece => {
             const playerLeftEdgeX = this.player.x - this.player.width / 2;
             const playerLeftEdgeWithOffsetX = this.player.x + this.player.width / 2;
@@ -160,8 +170,8 @@ class Game {
 
         this.setHeaderText();
 
-
         if (quit) {
+            // Ako je došlo do sudara onda zaustavimo igru, otkrijemo tipku za restart i pošaljemo poruku o završetku igre
             this.stop();
             this.restartButton.style.display = "block";
             alert(`Igra zavrsena s vremenom ${this.formatTime(new Date().getTime() - this.startTime)}`);
@@ -174,12 +184,14 @@ function randomSpeed() {
     return (3) * (Math.floor(Math.random() * 2) === 0 ? -1 : 1);
 }
 
+/**
+    * Abstraktna klasa koju nasljeđuje igrač i asteroid
+    * Izvodi logiku računanja nove pozicije i crtanje komponente
+*/
 class Component {
     /**
-        * Asteroid
-        *
         * @param {typeof game} gameArea
-        */
+    */
     constructor(gameArea) {
         this.gameArea = gameArea;
     }
@@ -189,6 +201,8 @@ class Component {
         this.ctx.save();
         this.ctx.translate(this.x, this.y);
         this.ctx.fillStyle = this.color;
+        this.ctx.shadowBlur = 5;
+        this.ctx.shadowColor = "black";
         this.ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
         this.ctx.restore();
     };
@@ -207,12 +221,16 @@ class Component {
     };
 }
 
+/**
+    * Asteroid započinje s nasumičnim vektorom brzine, ima nasumičnu nijansu sive boje i nasumičnu veličinu
+    * Uvijek ulazi s ruba canvasa
+*/
 class Asteroid extends Component {
     /**
         * Asteroid
         *
         * @param {Game} gameArea
-        */
+    */
     constructor(gameArea) {
         super(gameArea)
         this.speed_x = randomSpeed();
@@ -246,12 +264,16 @@ class Asteroid extends Component {
 
 }
 
+/**
+    * Igrač započinje bez kretnje s centra canvasa, crvene je boje i ima veličinu 30/30
+    * Uvijek ulazi s ruba canvasa
+*/
 class Player extends Component {
     /**
         * Player
         *
         * @param {typeof myGameArea} gameArea
-        */
+    */
     constructor(myGameArea) {
         super(myGameArea);
         this.x = window.innerWidth / 2;
