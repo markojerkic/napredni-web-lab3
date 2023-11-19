@@ -1,7 +1,21 @@
 <!doctype html>
 <html>
-    <body style="margin:0">
-        <span id="results" style="z-index:99;text-align: end;position: absolute;top: 0;right:0;font-weight: 100;padding:2rem;font-size:larger"></span>
+    <body style="margin: 0">
+        <div
+            style="
+                z-index: 99;
+                text-align: end;
+                position: absolute;
+                top: 0;
+                right: 0;
+                font-weight: 100;
+                padding: 2rem;
+                font-size: larger;
+            "
+        >
+            <p id="results"></p>
+            <button id="restart" style="display:none" onclick="restartGame()">Restart igre</button>
+        </div>
         <script src="index.js"></script>
     </body>
 </html>

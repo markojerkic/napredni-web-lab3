@@ -12,18 +12,20 @@ class Game {
 
     constructor() {
         this.canvas = document.createElement("canvas")
-
-    }
-
-    start() {
-        this.resultsSpan = document.getElementById("results");
-        if (!this.resultsSpan) throw Error("No results span");
-
         this.canvas.id = "myGameCanvas";
         this.canvas.width = window.innerWidth - 10;
         this.canvas.height = window.innerHeight - 10;
         this.context = this.canvas.getContext("2d");
+
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.resultsP = document.getElementById("results");
+        if (!this.resultsP) throw Error("No results p");
+        this.restartButton = document.getElementById("restart");
+        if (!this.restartButton) throw Error("No restart button");
+        this.restartButton.style.display = "none";
+    }
+
+    start() {
         this.frameNo = 0;
         this.interval = setInterval(() => this.updateGameArea(), 20);
         this.canvas.focus();
@@ -59,7 +61,7 @@ class Game {
         }
         resultString += `Trenutno vrijeme: ${this.formatTime(new Date().getTime() - this.startTime)}`
 
-        this.resultsSpan.innerText = resultString;
+        this.resultsP.innerText = resultString;
     }
 
     stop() {
@@ -155,7 +157,8 @@ class Game {
 
         if (quit) {
             this.stop();
-            alert("Gotov si");
+            this.restartButton.style.display = "block";
+            alert(`Igra zavrsena s vremenom ${this.formatTime(new Date().getTime() - this.startTime)}`);
         }
     }
 }
@@ -169,7 +172,7 @@ class Component {
     /**
         * Asteroid
         *
-        * @param {typeof myGameArea} gameArea
+        * @param {typeof game} gameArea
         */
     constructor(gameArea) {
         this.gameArea = gameArea;
@@ -187,11 +190,11 @@ class Component {
     newPos() {
         if (this.x - this.width / 2 < 0)
             this.speed_x = Math.abs(this.speed_x);
-        else if ((this.x + this.width / 2) >= myGameArea.context.canvas.width)
+        else if ((this.x + this.width / 2) >= game.context.canvas.width)
             this.speed_x = -Math.abs(this.speed_x);
         if (this.y - this.height / 2 < 0)
             this.speed_y = -Math.abs(this.speed_x);
-        else if ((this.y + this.height / 2) >= myGameArea.context.canvas.height)
+        else if ((this.y + this.height / 2) >= game.context.canvas.height)
             this.speed_y = Math.abs(this.speed_x);
         this.x += this.speed_x;
         this.y -= this.speed_y;
@@ -258,6 +261,11 @@ class Player extends Component {
 
 }
 
-let myGameArea = new Game();
-myGameArea.start();
+let game = new Game();
 
+function restartGame() {
+    game.gamePieces = [];
+    game.start();
+}
+
+game.start();
