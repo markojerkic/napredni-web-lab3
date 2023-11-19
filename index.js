@@ -24,9 +24,9 @@ var myGameArea = {
 }
 
 function startGame() {
-    gamePieces.push(new Asteroid(30, 30, "red", myGameArea));
-    gamePieces.push(new Asteroid(30, 30, "blue", myGameArea));
-    gamePieces.push(new Asteroid(30, 30, "green", myGameArea));
+    gamePieces.push(new Asteroid(myGameArea));
+    gamePieces.push(new Asteroid(myGameArea));
+    gamePieces.push(new Asteroid(myGameArea));
 
     myGameArea.start();
 }
@@ -37,24 +37,28 @@ function randomSpeed() {
 
 class Asteroid {
     /**
-        * Game component
+        * Asteroid
         *
-        * @param {number} width
-        * @param {number} height
-        * @param {number} x
-        * @param {number} y
-        * @param {string} color
         * @param {typeof myGameArea} gameArea
         */
-    constructor(width, height, color, gameArea, type) {
+    constructor(gameArea) {
         this.gameArea = gameArea;
-        this.type = type;
-        this.width = width;
-        this.height = height;
-        this.color = color;
         this.speed_x = randomSpeed();
         this.speed_y = randomSpeed();
         this.randomStart();
+        this.randomShadeOfGrey();
+        this.randomSize()
+    }
+
+    randomSize() {
+        const rand = 30 + Math.floor(Math.random() * 60);
+        this.height = rand;
+        this.width = rand;
+    }
+
+    randomShadeOfGrey() {
+        const rand = Math.max(Math.floor(Math.random() * 230) + 10, 0);
+        this.color = `rgb(${rand}, ${rand}, ${rand})`
     }
 
     randomStart() {
