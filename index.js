@@ -25,13 +25,13 @@ class Game {
         // Učitavanje drugih potrebnih elemenata
         this.restartButton = document.getElementById("restart");
         if (!this.restartButton) throw Error("No restart button");
-        this.restartButton.style.display = "none";
 
         // Dohvat najboljeg rezultata
         this.topScore = localStorage.getItem("topScore");
     }
 
     start() {
+        this.restartButton.style.display = "none";
         // Interval za ponovno crtanje po canvasu
         this.interval = setInterval(() => this.updateGameArea(), 20);
         // Prebacimo fokus na canvas, da se odmah može koristiti tipkovnica i upravljati igrom
