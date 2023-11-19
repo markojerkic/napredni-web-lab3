@@ -2,6 +2,11 @@
     * @type Asteroid[]
     */
 const gamePieces = []
+/**
+    * @type Player
+    */
+let player = null;
+let eventListener = null;
 
 var myGameArea = {
     // @type HTMLCanvasElement
@@ -17,13 +22,42 @@ var myGameArea = {
     },
     stop: function() {
         clearInterval(this.interval);
+        removeEventListener("keydown", eventListener);
     },
     clear: function() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
 
+function hanldeKeypress(e) {
+    console.log("Tipka ošla", e);
+    switch (e.code) {
+        case "ArrowDown":
+            player.speed_x = 0;
+            player.speed_y = -3
+            break;
+        case "ArrowUp":
+            player.speed_x = 0;
+            player.speed_y = 3
+            break;
+        case "ArrowRight":
+            player.speed_x = 3
+            player.speed_y = 0;
+            break;
+        case "ArrowLeft":
+            player.speed_x = -3
+            player.speed_y = 0;
+            break;
+        default:
+            break;
+    }
+    console.log("sx, sy", player.speed_x, player.speed_y);
+}
+
 function startGame() {
+    player = new Player(myGameArea);
+    eventListener = window.addEventListener("keydown", hanldeKeypress)
+
     gamePieces.push(new Asteroid(myGameArea));
     gamePieces.push(new Asteroid(myGameArea));
     gamePieces.push(new Asteroid(myGameArea));
@@ -32,10 +66,10 @@ function startGame() {
 }
 
 function randomSpeed() {
-    return (Math.random() * 3 + 1) * (Math.floor(Math.random() * 2) === 0 ? -1 : 1);
+    return (3) * (Math.floor(Math.random() * 2) === 0 ? -1 : 1);
 }
 
-class Asteroid {
+class Component {
     /**
         * Asteroid
         *
@@ -43,6 +77,39 @@ class Asteroid {
         */
     constructor(gameArea) {
         this.gameArea = gameArea;
+    }
+
+    update() {
+        this.ctx = this.gameArea.context;
+        this.ctx.save();
+        this.ctx.translate(this.x, this.y);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
+        this.ctx.restore();
+    };
+
+    newPos() {
+        if (this.x - this.width / 2 < 0)
+            this.speed_x = Math.abs(this.speed_x);
+        else if ((this.x + this.width / 2) >= myGameArea.context.canvas.width)
+            this.speed_x = -Math.abs(this.speed_x);
+        if (this.y - this.height / 2 < 0)
+            this.speed_y = -Math.abs(this.speed_x);
+        else if ((this.y + this.height / 2) >= myGameArea.context.canvas.height)
+            this.speed_y = Math.abs(this.speed_x);
+        this.x += this.speed_x;
+        this.y -= this.speed_y;
+    };
+}
+
+class Asteroid extends Component {
+    /**
+        * Asteroid
+        *
+        * @param {typeof myGameArea} gameArea
+        */
+    constructor(gameArea) {
+        super(gameArea)
         this.speed_x = randomSpeed();
         this.speed_y = randomSpeed();
         this.randomStart();
@@ -72,27 +139,28 @@ class Asteroid {
         }
     }
 
-    update() {
-        this.ctx = this.gameArea.context;
-        this.ctx.save();
-        this.ctx.translate(this.x, this.y);
-        this.ctx.fillStyle = this.color;
-        this.ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
-        this.ctx.restore();
-    };
+}
 
-    newPos() {
-        if (this.x - this.width / 2 < 0)
-            this.speed_x = 2;
-        else if ((this.x + this.width / 2) >= myGameArea.context.canvas.width)
-            this.speed_x = -2;
-        if (this.y - this.height / 2 < 0)
-            this.speed_y = -2;
-        else if ((this.y + this.height / 2) >= myGameArea.context.canvas.height)
-            this.speed_y = 2;
-        this.x += this.speed_x;
-        this.y -= this.speed_y;
-    };
+class Player extends Component {
+    /**
+        * Player
+        *
+        * @param {typeof myGameArea} gameArea
+        */
+    constructor(myGameArea) {
+        super(myGameArea);
+        this.x = 450;
+        this.y = 450;
+        this.color = "red";
+        this.height = 30;
+        this.width = 30;
+
+        this.speed_x = 0;
+        this.speed_y = 0;
+
+    }
+
+
 }
 
 function updateGameArea() {
@@ -102,6 +170,8 @@ function updateGameArea() {
         gamePiece.newPos();
         gamePiece.update();
     }
+    player.newPos();
+    player.update();
 }
 
 startGame();
