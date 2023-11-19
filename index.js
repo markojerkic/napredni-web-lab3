@@ -1,69 +1,129 @@
-/**
-    * @type Asteroid[]
-    */
-const gamePieces = []
-/**
-    * @type Player
-    */
-let player = null;
-let eventListener = null;
 
-var myGameArea = {
-    // @type HTMLCanvasElement
-    canvas: document.createElement("canvas"),
-    start: function() {
+class Game {
+    /**
+        * @type Asteroid[]
+        */
+    gamePieces = [];
+    /**
+        * @type Player
+        */
+    player = null;
+    eventListener = null;
+
+    constructor() {
+        this.canvas = document.createElement("canvas")
+
+    }
+
+    start() {
         this.canvas.id = "myGameCanvas";
         this.canvas.width = window.innerWidth - 10;
         this.canvas.height = window.innerHeight - 10;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.frameNo = 0;
-        this.interval = setInterval(updateGameArea, 20);
+        this.interval = setInterval(() => this.updateGameArea(), 20);
         this.canvas.focus();
-    },
-    stop: function() {
+
+        this.eventListener = window.addEventListener("keydown", (e) => this.hanldeKeypress(e))
+
+        this.player = new Player(this);
+        for (let i = 0; i < Math.floor(Math.random() * 10) + 5; i++) {
+            this.gamePieces.push(new Asteroid(this));
+        }
+
+    }
+
+    stop() {
         clearInterval(this.interval);
-        removeEventListener("keydown", eventListener);
-    },
-    clear: function() {
+        removeEventListener("keydown", this.eventListener);
+    }
+
+    clear() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
-}
 
-function hanldeKeypress(e) {
-    switch (e.code) {
-        case "ArrowDown":
-            player.speed_x = 0;
-            player.speed_y = -3
-            break;
-        case "ArrowUp":
-            player.speed_x = 0;
-            player.speed_y = 3
-            break;
-        case "ArrowRight":
-            player.speed_x = 3
-            player.speed_y = 0;
-            break;
-        case "ArrowLeft":
-            player.speed_x = -3
-            player.speed_y = 0;
-            break;
-        default:
-            break;
-    }
-    console.log("sx, sy", player.speed_x, player.speed_y);
-}
-
-function startGame() {
-    player = new Player(myGameArea);
-    eventListener = window.addEventListener("keydown", hanldeKeypress)
-
-    for (let i = 0; i < Math.floor(Math.random() * 10) + 5; i++) {
-        gamePieces.push(new Asteroid(myGameArea));
+    hanldeKeypress(e) {
+        switch (e.code) {
+            case "ArrowDown":
+                this.player.speed_x = 0;
+                this.player.speed_y = -3
+                break;
+            case "ArrowUp":
+                this.player.speed_x = 0;
+                this.player.speed_y = 3
+                break;
+            case "ArrowRight":
+                this.player.speed_x = 3
+                this.player.speed_y = 0;
+                break;
+            case "ArrowLeft":
+                this.player.speed_x = -3
+                this.player.speed_y = 0;
+                break;
+            default:
+                break;
+        }
     }
 
-    myGameArea.start();
+    updateGameArea() {
+        this.clear();
+
+        for (let gamePiece of this.gamePieces) {
+            gamePiece.newPos();
+            gamePiece.update();
+        }
+
+        this.player.newPos();
+        this.player.update();
+
+        let quit = this.gamePieces.some(piece => {
+            const playerLeftEdgeX = this.player.x - this.player.width / 2;
+            const playerLeftEdgeWithOffsetX = this.player.x + this.player.width / 2;
+            const playerTopEdgeY = this.player.y - this.player.height / 2;
+            const playerTopEdgeWithOffsetY = this.player.y + this.player.height / 2;
+
+            const pieceLeftEdgeX = piece.x - piece.width / 2;
+            const pieceLeftEdgeWithOffsetX = piece.x + piece.width / 2;
+            const pieceTopEdgeY = piece.y - piece.height / 2;
+            const pieceTopEdgeWithOffsetY = piece.y + piece.height / 2;
+
+
+            // Gorni lijevi kut je unutar jednog pieca
+            if ((playerLeftEdgeX >= pieceLeftEdgeX && playerLeftEdgeX <= pieceLeftEdgeWithOffsetX) &&
+                (playerTopEdgeY >= pieceTopEdgeY && playerTopEdgeY <= pieceTopEdgeWithOffsetY)) {
+                return true;
+            }
+
+            // Gorni desni kut je unutar jednog pieca
+            if ((playerLeftEdgeWithOffsetX >= pieceLeftEdgeX && playerLeftEdgeWithOffsetX <= pieceLeftEdgeWithOffsetX) &&
+                (playerTopEdgeY >= pieceTopEdgeY && playerTopEdgeY <= pieceTopEdgeWithOffsetY)) {
+                return true;
+            }
+
+            // Donji lijevi kut je unutar jednog pieca
+            if ((playerLeftEdgeX >= pieceLeftEdgeX && playerLeftEdgeX <= pieceLeftEdgeWithOffsetX) &&
+                (playerTopEdgeWithOffsetY >= pieceTopEdgeY && playerTopEdgeWithOffsetY <= pieceTopEdgeWithOffsetY)) {
+                return true;
+            }
+
+            // Donji desni kut je unutar jednog pieca
+            if ((playerLeftEdgeWithOffsetX >= pieceLeftEdgeX && playerLeftEdgeWithOffsetX <= pieceLeftEdgeWithOffsetX) &&
+                (playerTopEdgeWithOffsetY >= pieceTopEdgeY && playerTopEdgeWithOffsetY <= pieceTopEdgeWithOffsetY)) {
+                return true;
+            }
+
+            return false;
+        });
+
+
+        if (quit) {
+            this.stop();
+            alert("Gotov si");
+        }
+    }
 }
+
 
 function randomSpeed() {
     return (3) * (Math.floor(Math.random() * 2) === 0 ? -1 : 1);
@@ -106,7 +166,7 @@ class Asteroid extends Component {
     /**
         * Asteroid
         *
-        * @param {typeof myGameArea} gameArea
+        * @param {Game} gameArea
         */
     constructor(gameArea) {
         super(gameArea)
@@ -160,64 +220,8 @@ class Player extends Component {
 
     }
 
-
 }
 
-function updateGameArea() {
-    myGameArea.clear();
+let myGameArea = new Game();
+myGameArea.start();
 
-    for (let gamePiece of gamePieces) {
-        gamePiece.newPos();
-        gamePiece.update();
-    }
-
-    player.newPos();
-    player.update();
-
-    let quit = gamePieces.some(piece => {
-        const playerLeftEdgeX = player.x - player.width / 2;
-        const playerLeftEdgeWithOffsetX = player.x + player.width / 2;
-        const playerTopEdgeY = player.y - player.height / 2;
-        const playerTopEdgeWithOffsetY = player.y + player.height / 2;
-
-        const pieceLeftEdgeX = piece.x - piece.width / 2;
-        const pieceLeftEdgeWithOffsetX = piece.x + piece.width / 2;
-        const pieceTopEdgeY = piece.y - piece.height / 2;
-        const pieceTopEdgeWithOffsetY = piece.y + piece.height / 2;
-
-
-        // Gorni lijevi kut je unutar jednog pieca
-        if ((playerLeftEdgeX >= pieceLeftEdgeX && playerLeftEdgeX <= pieceLeftEdgeWithOffsetX) &&
-            (playerTopEdgeY >= pieceTopEdgeY && playerTopEdgeY <= pieceTopEdgeWithOffsetY)) {
-            return true;
-        }
-
-        // Gorni desni kut je unutar jednog pieca
-        if ((playerLeftEdgeWithOffsetX >= pieceLeftEdgeX && playerLeftEdgeWithOffsetX <= pieceLeftEdgeWithOffsetX) &&
-            (playerTopEdgeY >= pieceTopEdgeY && playerTopEdgeY <= pieceTopEdgeWithOffsetY)) {
-            return true;
-        }
-
-        // Donji lijevi kut je unutar jednog pieca
-        if ((playerLeftEdgeX >= pieceLeftEdgeX && playerLeftEdgeX <= pieceLeftEdgeWithOffsetX) &&
-            (playerTopEdgeWithOffsetY >= pieceTopEdgeY && playerTopEdgeWithOffsetY <= pieceTopEdgeWithOffsetY)) {
-            return true;
-        }
-
-        // Donji desni kut je unutar jednog pieca
-        if ((playerLeftEdgeWithOffsetX >= pieceLeftEdgeX && playerLeftEdgeWithOffsetX <= pieceLeftEdgeWithOffsetX) &&
-            (playerTopEdgeWithOffsetY >= pieceTopEdgeY && playerTopEdgeWithOffsetY <= pieceTopEdgeWithOffsetY)) {
-            return true;
-        }
-
-        return false;
-    });
-
-
-    if (quit) {
-        myGameArea.stop();
-        alert("Gotov si");
-    }
-}
-
-startGame();
