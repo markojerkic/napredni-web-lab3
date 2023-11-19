@@ -11,15 +11,15 @@ class Game {
     eventListener = null;
 
     constructor() {
+        // Stvaranje canvas elementa
         this.canvas = document.createElement("canvas")
         this.canvas.id = "myGameCanvas";
         this.canvas.width = window.innerWidth - 10;
         this.canvas.height = window.innerHeight - 10;
         this.context = this.canvas.getContext("2d");
-
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.resultsP = document.getElementById("results");
-        if (!this.resultsP) throw Error("No results p");
+
+        // Učitavanje drugih potrebnih elemenata
         this.restartButton = document.getElementById("restart");
         if (!this.restartButton) throw Error("No restart button");
         this.restartButton.style.display = "none";
@@ -56,12 +56,18 @@ class Game {
         let topScore = localStorage.getItem("topScore");
 
         let resultString = ``;
+        let ctx = this.canvas.getContext('2d');
+        ctx.fillStyle = 'rgb(0,0,0)';
+        ctx.font = "1.5rem Arial";
         if (topScore) {
-            resultString = `Najbolje vrijeme: ${this.formatTime(Number(topScore))}\n`
+            resultString =
+                ctx.textAlign = 'right';
+            ctx.fillText(`Najbolje vrijeme: ${this.formatTime(Number(topScore))}`, this.canvas.width, 30);
         }
-        resultString += `Trenutno vrijeme: ${this.formatTime(new Date().getTime() - this.startTime)}`
+        resultString =
+            ctx.textAlign = 'right';
+        ctx.fillText(`Trenutno vrijeme: ${this.formatTime(new Date().getTime() - this.startTime)}`, this.canvas.width, 60);
 
-        this.resultsP.innerText = resultString;
     }
 
     stop() {
@@ -261,8 +267,10 @@ class Player extends Component {
 
 }
 
+// Inicijalizira se instanca igre.
 let game = new Game();
 
+// Funkcija koja restarta igru
 function restartGame() {
     game.gamePieces = [];
     game.start();
