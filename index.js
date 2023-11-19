@@ -16,6 +16,9 @@ class Game {
     }
 
     start() {
+        this.resultsSpan = document.getElementById("results");
+        if (!this.resultsSpan) throw Error("No results span");
+
         this.canvas.id = "myGameCanvas";
         this.canvas.width = window.innerWidth - 10;
         this.canvas.height = window.innerHeight - 10;
@@ -32,11 +35,42 @@ class Game {
             this.gamePieces.push(new Asteroid(this));
         }
 
+        this.setHeaderText();
+        this.startTime = new Date().getTime();
+    }
+
+    /**
+        * @param {number} duration
+    */
+    formatTime(duration) {
+        const ms = duration % 1000;
+        const s = (duration - ms) / 1000 % 60;
+        const m = ((duration - ms) / 1000 - s) / 60;
+
+        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}:${ms < 10 ? '00' : (ms < 100 ? '0' : '')}${ms}`;
+    }
+
+    setHeaderText() {
+        let topScore = localStorage.getItem("topScore");
+
+        let resultString = ``;
+        if (topScore) {
+            resultString = `Najbolje vrijeme: ${this.formatTime(Number(topScore))}\n`
+        }
+        resultString += `Trenutno vrijeme: ${this.formatTime(new Date().getTime() - this.startTime)}`
+
+        this.resultsSpan.innerText = resultString;
     }
 
     stop() {
         clearInterval(this.interval);
         removeEventListener("keydown", this.eventListener);
+
+        let topScore = Number(localStorage.getItem("topScore") ?? 0);
+        const newTime = new Date().getTime() - this.startTime;
+        if (!topScore || newTime > topScore) {
+            localStorage.setItem("topScore", newTime);
+        }
     }
 
     clear() {
@@ -115,6 +149,8 @@ class Game {
 
             return false;
         });
+
+        this.setHeaderText();
 
 
         if (quit) {
